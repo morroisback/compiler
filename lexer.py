@@ -149,7 +149,7 @@ class Lexer:
                 level -= 1
 
             if level == 0:
-                return -idx - 1
+                return idx
 
         raise SyntaxError("Invalid parenthesis syntax: " + Lexer.detokenize(tokens))
 

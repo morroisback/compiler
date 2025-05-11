@@ -65,7 +65,7 @@ class Parser:
 
         if tokens[0] in (TokenEnum.U_ADD, TokenEnum.U_SUB):
             return Node(tokens[0].token, self.parse_expr(tokens[1:]))
-        
+
         if tokens[0] in (TokenEnum.NUM, TokenEnum.VAR):
             return Node(tokens[0].token, tokens[0].name)
 
@@ -73,21 +73,16 @@ class Parser:
             "Invalid unary expression syntax: " + Lexer.detokenize(tokens)
         )
 
-    def parse_binary(self, tokens: tuple, ops: tuple[Token]) -> Node | None:
+    def parse_binary(self, tokens: tuple[Token], ops: tuple[TokenEnum]) -> Node | None:
         if not tokens:
             raise SyntaxError(
                 "Invalid binary expression syntax: " + Lexer.detokenize(tokens)
             )
 
-        for idx, token in enumerate(tokens[::-1]):
-            if token == TokenEnum.RP:
-                idx = Lexer.lp_idx(tokens[:-idx])
-                return self.parse_expr(tokens[1:idx])
-
-        idx = 0
-        while idx < len(tokens):
-            if tokens[idx] == TokenEnum.LP:
-                idx += Lexer.rp_idx(tokens[idx:])
+        idx = len(tokens) - 1
+        while idx >= 0:
+            if tokens[idx] == TokenEnum.RP:
+                idx -= Lexer.lp_idx(tokens[:idx + 1])
 
             if tokens[idx] in ops:
                 if idx == 0:
@@ -100,7 +95,7 @@ class Parser:
                     self.parse_expr(tokens[idx + 1 :]),
                 )
 
-            idx += 1
+            idx -= 1
 
         return None
 
@@ -108,7 +103,9 @@ class Parser:
         if not tokens:
             raise SyntaxError("Invalid expression syntax: " + Lexer.detokenize(tokens))
 
-        node = self.parse_binary(tokens, (TokenEnum.LT, TokenEnum.GT, TokenEnum.EQ, TokenEnum.NEQ))
+        node = self.parse_binary(
+            tokens, (TokenEnum.LT, TokenEnum.GT, TokenEnum.EQ, TokenEnum.NEQ)
+        )
         if node:
             return node
 
