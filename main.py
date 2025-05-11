@@ -39,37 +39,14 @@ def test_lexer() -> None:
     expr = "-a  * - 2 - 2 > 2 / ( 5 + (56 - 2 )* 2) == 2  - - - + -(-2 - 4)*4"
 
     lexer = Lexer()
-    program1 = lexer.tokenize(program)
-    expr1 = lexer.tokenize(expr)
+    program_tokens = lexer.tokenize(program)
+    expr_tokens = lexer.tokenize(expr)
 
-    print(program1)
-    print(expr1)
+    print(program_tokens)
+    print(expr_tokens)
 
-    # lexer = OldLexer()
-    # program2 = lexer.lex_program(program)
-    # stmts = lexer.lex_stmts(program)
-    # print(program)
-    # print(stmts)
-    # for stmt in stmts: 
-    #     print(lexer.lex_stmt(stmt))
-        
-    # while_stmt = lexer.lex_stmt(stmts[2])
-    # inner_stmts = lexer.lex_stmts(while_stmt[2])
-    # print(inner_stmts)
-    # for stmt in inner_stmts: 
-    #     print(lexer.lex_stmt(stmt))
-
-    # expr = lexer.lex_program(expr)
-    # expr = lexer.lex_expr(expr)
-    # print(expr)
-    # expr = lexer.lex_expr(expr[1])
-    # print(expr)
-    # expr = lexer.lex_expr(expr[1])
-    # print(expr)
-    # expr = lexer.lex_expr(expr[1])
-    # print(expr)
-    # expr = lexer.lex_expr(expr[1])
-    # print(expr)
+    print(lexer.detokenize(program_tokens))
+    print(lexer.detokenize(expr_tokens))
 
 
 def test_parser() -> None:

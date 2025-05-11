@@ -1,9 +1,9 @@
-from lexer import Lexer, Token
+from lexer import Lexer, Token, TokenEnum
 
 
 class Node:
     def __init__(
-        self, name: Token, op1: str, op2: str | None = None, op3: str | None = None
+        self, name: TokenEnum, op1: str, op2: str | None = None, op3: str | None = None
     ) -> None:
         self.name = name
         self.op1 = op1
@@ -20,11 +20,11 @@ class Node:
 
 
 class Parser:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def parse_stmts(self, tokens: tuple) -> tuple:
-        if tokens[-1][0] not in (Token.END_STMT, Token.RP_STMT):
+    def parse_stmts(self, tokens: tuple[Token]) -> tuple:
+        if tokens[-1] not in (TokenEnum.END_STMT, TokenEnum.RP_STMT):
             raise SyntaxError("Invalid stmts syntax: " + Lexer.detokenize(tokens))
 
         idx = 0
@@ -32,12 +32,12 @@ class Parser:
         stmts = [[]]
 
         while idx < len(tokens):
-            if tokens[idx][0] == Token.LP_STMT:
+            if tokens[idx] == TokenEnum.LP_STMT:
                 lp_idx = idx
                 idx += Lexer.rp_idx(tokens[idx:])
                 rp_idx = idx
 
-                if idx + 1 < len(tokens) and tokens[idx + 1][0] == Token.ELSE:
+                if idx + 1 < len(tokens) and tokens[idx + 1] == TokenEnum.ELSE:
                     idx += 2
                     idx += Lexer.rp_idx(tokens[idx:])
                     rp_idx = idx
@@ -48,7 +48,7 @@ class Parser:
             else:
                 stmts[stmts_idx].append(tokens[idx])
 
-            if tokens[idx][0] == Token.END_STMT:
+            if tokens[idx] == TokenEnum.END_STMT:
                 stmts_idx += 1
                 stmts.append([])
 
@@ -57,45 +57,45 @@ class Parser:
         del stmts[stmts_idx]
         return tuple(map(tuple, stmts))
 
-    def parse_unary(self, tokens: tuple) -> Node:
+    def parse_unary(self, tokens: tuple[Token]) -> Node:
         if not tokens:
             raise SyntaxError(
                 "Invalid unary expression syntax: " + Lexer.detokenize(tokens)
             )
 
-        if tokens[0][0] in (Token.NUM, Token.VAR):
-            return Node(tokens[0][0], tokens[0][1])
-
-        if tokens[0][0] in (Token.U_ADD, Token.U_SUB):
-            return Node(tokens[0][0], self.parse_expr(tokens[1:]))
+        if tokens[0] in (TokenEnum.U_ADD, TokenEnum.U_SUB):
+            return Node(tokens[0].token, self.parse_expr(tokens[1:]))
+        
+        if tokens[0] in (TokenEnum.NUM, TokenEnum.VAR):
+            return Node(tokens[0].token, tokens[0].name)
 
         raise SyntaxError(
             "Invalid unary expression syntax: " + Lexer.detokenize(tokens)
         )
 
-    def parse_binary(self, tokens: tuple, ops: tuple) -> Node | None:
+    def parse_binary(self, tokens: tuple, ops: tuple[Token]) -> Node | None:
         if not tokens:
             raise SyntaxError(
                 "Invalid binary expression syntax: " + Lexer.detokenize(tokens)
             )
 
         for idx, token in enumerate(tokens[::-1]):
-            if token[0] == Token.RP:
+            if token == TokenEnum.RP:
                 idx = Lexer.lp_idx(tokens[:-idx])
                 return self.parse_expr(tokens[1:idx])
 
         idx = 0
         while idx < len(tokens):
-            if tokens[idx][0] == Token.LP:
+            if tokens[idx] == TokenEnum.LP:
                 idx += Lexer.rp_idx(tokens[idx:])
 
-            if tokens[idx][0] in ops:
+            if tokens[idx] in ops:
                 if idx == 0:
                     raise SyntaxError(
                         "Invalid binary expression syntax: " + Lexer.detokenize(tokens)
                     )
                 return Node(
-                    tokens[idx][0],
+                    tokens[idx].token,
                     self.parse_expr(tokens[:idx]),
                     self.parse_expr(tokens[idx + 1 :]),
                 )
@@ -104,26 +104,26 @@ class Parser:
 
         return None
 
-    def parse_expr(self, tokens: tuple) -> Node:
+    def parse_expr(self, tokens: tuple[Token]) -> Node:
         if not tokens:
             raise SyntaxError("Invalid expression syntax: " + Lexer.detokenize(tokens))
 
-        node = self.parse_binary(tokens, (Token.LT, Token.GT, Token.EQ, Token.NEQ))
+        node = self.parse_binary(tokens, (TokenEnum.LT, TokenEnum.GT, TokenEnum.EQ, TokenEnum.NEQ))
         if node:
             return node
 
-        node = self.parse_binary(tokens, (Token.ADD, Token.SUB))
+        node = self.parse_binary(tokens, (TokenEnum.ADD, TokenEnum.SUB))
         if node:
             return node
 
-        node = self.parse_binary(tokens, (Token.MUL, Token.DIV))
+        node = self.parse_binary(tokens, (TokenEnum.MUL, TokenEnum.DIV))
         if node:
             return node
 
-        if tokens[0][0] in (Token.U_ADD, Token.U_SUB):
+        if tokens[0] in (TokenEnum.U_ADD, TokenEnum.U_SUB):
             return self.parse_unary(tokens)
 
-        if tokens[0][0] == Token.LP:
+        if tokens[0] == TokenEnum.LP:
             idx = Lexer.rp_idx(tokens)
             return self.parse_expr(tokens[1:idx])
 
