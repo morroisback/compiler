@@ -35,7 +35,7 @@ def test_lexer() -> None:
     pass   ;
     exit;
     """
-    
+
     expr = "-a  * - 2 - 2 > 2 / ( 5 + (56 - 2 )* 2) == 2  - - - + -(-2 - 4)*4"
 
     lexer = Lexer()
@@ -81,7 +81,7 @@ def test_parser() -> None:
     pass   ;
     exit;
     """
-    
+
     expr = "-a  * - 2 - 2 > 2 / ( 5 + (56 - 2 )* 2) == 2  - - - + -(-2 - 4)*4"
     lexer = Lexer()
     program_tokens = lexer.tokenize(program)
@@ -89,13 +89,15 @@ def test_parser() -> None:
 
     print(lexer.detokenize(program_tokens))
     print(lexer.detokenize(expr_tokens))
-    
+
     parser = Parser()
-    stmts1 = parser.parse_stmts(program_tokens)
-    expr2 = parser.parse_expr(expr_tokens)
-    
-    print(stmts1)
-    print(expr2)
+    stmts = parser.parse_stmts(program_tokens)
+    expr = parser.parse_expr(expr_tokens)
+    stmt = parser.parse_stmt(stmts[0])
+
+    print(stmts)
+    print(expr)
+    print(stmt)
 
     # lexer = Lexer()
     # parser = Parser(lexer)
