@@ -92,7 +92,10 @@ def test_compiler() -> None:
     print(expr_tree)
 
     compiler = Compiler()
-
+    program_code = compiler.compile_program(program_tree)
+    for line, code in enumerate(program_code):
+        print(f"{line:03d}: {code}")
+    
 
 def main() -> None:
     # test_lexer()

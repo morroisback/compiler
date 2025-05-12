@@ -1,5 +1,6 @@
 from enum import Enum
 
+from lexer import TokenEnum
 from parser import Node
 
 
@@ -33,57 +34,65 @@ class Compiler:
         self.pc += 1
 
     def compile_node(self, node: Node) -> None:
-        name = node.token
-        if name == "INT":
+        token = node.token
+        if token == TokenEnum.NUM:
             self.compile_command(Command.PUSH)
             self.compile_command(int(node.op1))
-        elif name == "ID":
+        elif token == TokenEnum.VAR:
             self.compile_command(Command.FETCH)
             self.compile_command(node.op1)
-        elif name == "+":
+        elif token == TokenEnum.U_ADD:
+            self.compile_node(node.op1)
+            self.compile_node(Node(TokenEnum.NUM, "1"))
+            self.compile_command(Command.MUL)
+        elif token == TokenEnum.U_SUB:
+            self.compile_node(node.op1)
+            self.compile_node(Node(TokenEnum.NUM, "-1"))
+            self.compile_command(Command.MUL)
+        elif token == TokenEnum.ADD:
             self.compile_node(node.op1)
             self.compile_node(node.op2)
             self.compile_command(Command.ADD)
-        elif name == "-":
+        elif token == TokenEnum.SUB:
             self.compile_node(node.op1)
             self.compile_node(node.op2)
             self.compile_command(Command.SUB)
-        elif name == "*":
+        elif token == TokenEnum.MUL:
             self.compile_node(node.op1)
             self.compile_node(node.op2)
             self.compile_command(Command.MUL)
-        elif name == "/":
+        elif token == TokenEnum.DIV:
             self.compile_node(node.op1)
             self.compile_node(node.op2)
             self.compile_command(Command.DIV)
-        elif name == "<":
+        elif token == TokenEnum.LT:
             self.compile_node(node.op1)
             self.compile_node(node.op2)
             self.compile_command(Command.LT)
-        elif name == ">":
+        elif token == TokenEnum.GT:
             self.compile_node(node.op1)
             self.compile_node(node.op2)
             self.compile_command(Command.GT)
-        elif name == "==":
+        elif token == TokenEnum.EQ:
             self.compile_node(node.op1)
             self.compile_node(node.op2)
             self.compile_command(Command.EQ)
-        elif name == "!=":
+        elif token == TokenEnum.NEQ:
             self.compile_node(node.op1)
             self.compile_node(node.op2)
             self.compile_command(Command.NEQ)
-        elif name == "ASSIGN":
+        elif token == TokenEnum.ASSIGN:
             self.compile_node(node.op2)
             self.compile_command(Command.STORE)
-            self.compile_command(node.op1)
-        elif name == "IF":
+            self.compile_command(node.op1.op1)
+        elif token == TokenEnum.IF:
             self.compile_node(node.op1)
             self.compile_command(Command.JZ)
             addr_end = self.pc
             self.compile_command(Command.PASS)
             self.compile_stmt(node.op2)
             self.program[addr_end] = self.pc
-        elif name == "IFELSE":
+        elif token == TokenEnum.ELSE:
             self.compile_node(node.op1)
             self.compile_command(Command.JZ)
             addr_else = self.pc
@@ -95,7 +104,7 @@ class Compiler:
             self.program[addr_else] = self.pc
             self.compile_stmt(node.op3)
             self.program[addr_end] = self.pc
-        elif name == "WHILE":
+        elif token == TokenEnum.WHILE:
             addr_while = self.pc
             self.compile_node(node.op1)
             self.compile_command(Command.JZ)
@@ -105,9 +114,9 @@ class Compiler:
             self.compile_command(Command.JMP)
             self.compile_command(addr_while)
             self.program[addr_end] = self.pc
-        elif name == "EXIT":
+        elif token == TokenEnum.EXIT:
             self.compile_command(Command.HALT)
-        elif name == "PASS":
+        elif token == TokenEnum.PASS:
             self.compile_command(Command.PASS)
 
     def compile_stmt(self, ast: list) -> None:
