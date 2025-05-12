@@ -8,20 +8,18 @@ class Command(Enum):
     FETCH = 0
     STORE = 1
     PUSH = 2
-    POP = 3
-    ADD = 4
-    SUB = 5
-    MUL = 6
-    DIV = 7
-    LT = 8
-    GT = 9
-    EQ = 10
-    NEQ = 11
-    JZ = 12
-    JNZ = 13
-    JMP = 14
-    PASS = 15
-    HALT = 16
+    ADD = 3
+    SUB = 4
+    MUL = 5
+    DIV = 6
+    LT = 7
+    GT = 8
+    EQ = 9
+    NEQ = 10
+    JZ = 11
+    JMP = 12
+    PASS = 13
+    HALT = 14
 
 
 class Compiler:
@@ -119,12 +117,12 @@ class Compiler:
         elif token == TokenEnum.PASS:
             self.compile_command(Command.PASS)
 
-    def compile_stmt(self, ast: list) -> None:
+    def compile_stmt(self, ast: tuple[Node]) -> None:
         for stmt in ast:
             self.compile_node(stmt)
 
-    def compile_program(self, ast: list) -> list:
+    def compile_program(self, ast: tuple[Node]) -> tuple[Command | int | str]:
         self.compile_stmt(ast)
 
         self.compile_command(Command.HALT)
-        return self.program
+        return tuple(self.program)

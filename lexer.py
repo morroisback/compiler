@@ -67,7 +67,7 @@ class Token:
 
 class Lexer:
     @staticmethod
-    def tokenize(program: str) -> tuple:
+    def tokenize(program: str) -> tuple[Token]:
         pos = 0
         tokens = []
 
@@ -112,11 +112,11 @@ class Lexer:
         return tuple(tokens)
 
     @staticmethod
-    def detokenize(tokens: tuple) -> str:
+    def detokenize(tokens: tuple[Token]) -> str:
         return " ".join(map(lambda token: str(token), tokens))
 
     @staticmethod
-    def rp_idx(tokens: tuple) -> int:
+    def rp_idx(tokens: tuple[Token]) -> int:
         if tokens[0] not in (TokenEnum.LP, TokenEnum.LP_STMT):
             raise SyntaxError("Invalid parenthesis syntax: " + Lexer.detokenize(tokens))
 
@@ -139,7 +139,7 @@ class Lexer:
         raise SyntaxError("Invalid parenthesis syntax: " + Lexer.detokenize(tokens))
 
     @staticmethod
-    def lp_idx(tokens: tuple) -> int:
+    def lp_idx(tokens: tuple[Token]) -> int:
         if tokens[-1] not in (TokenEnum.RP, TokenEnum.RP_STMT):
             raise SyntaxError("Invalid parenthesis syntax: " + Lexer.detokenize(tokens))
 
