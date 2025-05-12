@@ -10,6 +10,7 @@ class TokenEnum(str, Enum):
     WHILE = "while"
     IF = "if"
     ELSE = "else"
+    IFELSE = "ifelse"
     PASS = "pass"
     EXIT = "exit"
     VAR = "var"
@@ -28,15 +29,22 @@ class TokenEnum(str, Enum):
     NEQ = "!="
     ASSIGN = "="
 
+    @classmethod
+    def has_value(cls, value: str) -> bool:
+        return value in cls._value2member_map_
+
 
 class Token:
-    def __init__(self, token: TokenEnum, name: str | None = None) -> None:
+    def __init__(self, token: TokenEnum, value: str | None = None) -> None:
+        if not TokenEnum.has_value(token):
+            raise TypeError("token must be a TokenEnum instance")
+
         self.token = token
-        self.name = name
+        self.value = value
 
     def __str__(self) -> str:
         if self.token in (TokenEnum.VAR, TokenEnum.NUM):
-            return self.name
+            return self.value
 
         if self.token in (TokenEnum.U_ADD, TokenEnum.U_SUB):
             return self.token[0]
@@ -44,6 +52,9 @@ class Token:
         return self.token
 
     def __repr__(self) -> str:
+        if self.token in (TokenEnum.VAR, TokenEnum.NUM):
+            return f"Token({self.token}, {self.value})"
+
         return f"Token({str(self)})"
 
     def __eq__(self, other: object) -> bool:
@@ -51,7 +62,7 @@ class Token:
             return self.token == other.token
         elif isinstance(other, TokenEnum):
             return self.token == other
-        
+
         return False
 
 

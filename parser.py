@@ -3,20 +3,20 @@ from lexer import Lexer, Token, TokenEnum
 
 class Node:
     def __init__(
-        self, name: TokenEnum, op1: str, op2: str | None = None, op3: str | None = None
+        self, token: TokenEnum, op1: str, op2: str | None = None, op3: str | None = None
     ) -> None:
-        self.name = name
+        self.token = token
         self.op1 = op1
         self.op2 = op2
         self.op3 = op3
 
     def __repr__(self) -> str:
         if self.op2 and self.op3:
-            return f"Node('{self.name}', {self.op1}, {self.op2}, {self.op3})"
+            return f"Node('{self.token}', {self.op1}, {self.op2}, {self.op3})"
         elif self.op2:
-            return f"Node('{self.name}', {self.op1}, {self.op2})"
+            return f"Node('{self.token}', {self.op1}, {self.op2})"
         else:
-            return f"Node('{self.name}', {self.op1})"
+            return f"Node('{self.token}', {self.op1})"
 
 
 class Parser:
@@ -30,17 +30,15 @@ class Parser:
             return Node(tokens[0].token, self.parse_expr(tokens[1:]))
 
         if tokens[0] in (TokenEnum.NUM, TokenEnum.VAR):
-            return Node(tokens[0].token, tokens[0].name)
+            return Node(tokens[0].token, tokens[0].value)
 
         raise SyntaxError(
             "Invalid unary expression syntax: " + Lexer.detokenize(tokens)
         )
 
     def parse_binary(self, tokens: tuple[Token], ops: tuple[TokenEnum]) -> Node | None:
-        if not tokens:
-            raise SyntaxError(
-                "Invalid binary expression syntax: " + Lexer.detokenize(tokens)
-            )
+        if len(tokens) < 3:
+            return None
 
         idx = len(tokens) - 1
         while idx >= 0:
@@ -85,12 +83,12 @@ class Parser:
         return self.parse_unary(tokens)
 
     def parse_stmt(self, tokens: tuple[Token]) -> Node:
-        if tokens[-1] not in (TokenEnum.END_STMT, TokenEnum.RP_STMT):
+        if len(tokens) < 2:
             raise SyntaxError("Invalid stmt syntax: " + Lexer.detokenize(tokens))
 
         if (
             tokens[0] in (TokenEnum.PASS, TokenEnum.EXIT)
-            and tokens[-1] == TokenEnum.END_STMT
+            and tokens[1] == TokenEnum.END_STMT
         ):
             return Node(tokens[0].token, None)
 
@@ -104,7 +102,7 @@ class Parser:
         ):
             return Node(
                 tokens[1].token,
-                Node(tokens[0].token, tokens[0].name),
+                Node(tokens[0].token, tokens[0].value),
                 self.parse_expr(tokens[2:-1]),
             )
         elif (
@@ -112,16 +110,55 @@ class Parser:
             and tokens[1] == TokenEnum.LP
             and tokens[-1] == TokenEnum.RP_STMT
         ):
-            # TODO: парсинг условий и стейтментов в список стейтментов, которые выполняются в цикле
-            return Node(
-                tokens[0].token,
-                self.parse_expr(tokens[1:-2]),
-                self.parse_stmts(tokens[2:-1]),
+            expr_open_idx = 1
+            expr_close_idx = expr_open_idx + Lexer.rp_idx(tokens[expr_open_idx:])
+            expr_tree = self.parse_expr(tokens[expr_open_idx + 1 : expr_close_idx])
+
+            stmts_open_idx = tokens.index(TokenEnum.LP_STMT, expr_close_idx)
+            stmts_close_idx = stmts_open_idx + Lexer.rp_idx(tokens[stmts_open_idx:])
+            stmts = self.parse_stmts(tokens[stmts_open_idx + 1 : stmts_close_idx])
+            stmts_tree = []
+            for stmt in stmts:
+                stmts_tree.append(self.parse_stmt(stmt))
+
+            if len(stmts_tree) != len(stmts):
+                raise SyntaxError("Invalid stmts syntax: " + Lexer.detokenize(stmt))
+
+            return Node(tokens[0].token, expr_tree, tuple(stmts_tree))
+        elif (
+            tokens[0] == TokenEnum.IF
+            and tokens[1] == TokenEnum.LP
+            and tokens[-1] == TokenEnum.RP_STMT
+        ):
+            expr_open_idx = 1
+            expr_close_idx = expr_open_idx + Lexer.rp_idx(tokens[expr_open_idx:])
+            expr_tree = self.parse_expr(tokens[expr_open_idx + 1 : expr_close_idx])
+
+            if_stmts_open_idx = tokens.index(TokenEnum.LP_STMT, expr_close_idx)
+            if_stmts_close_idx = if_stmts_open_idx + Lexer.rp_idx(
+                tokens[if_stmts_open_idx:]
             )
+            if_stmts = self.parse_stmts(
+                tokens[if_stmts_open_idx + 1 : if_stmts_close_idx]
+            )
+            if_stmts_tree = []
+            for stmt in if_stmts:
+                if_stmts_tree.append(self.parse_stmt(stmt))
+
+            if len(if_stmts_tree) != len(stmts):
+                raise SyntaxError("Invalid stmts syntax: " + Lexer.detokenize(stmt))
+
+            if (
+                len(tokens) == if_stmts_close_idx
+                or tokens[if_stmts_close_idx + 1] != TokenEnum.ELSE
+            ):
+                return Node(tokens[0].token, expr_tree, tuple(if_stmts_tree))
+
+            # return Node(tokens[0].token, expr_tree, tuple(if_stmts_tree))
 
         raise SyntaxError("Invalid stmt syntax: " + Lexer.detokenize(tokens))
 
-    def parse_stmts(self, tokens: tuple[Token]) -> tuple:
+    def parse_stmts(self, tokens: tuple[Token]) -> tuple[tuple[Token]]:
         if tokens[-1] not in (TokenEnum.END_STMT, TokenEnum.RP_STMT):
             raise SyntaxError("Invalid stmts syntax: " + Lexer.detokenize(tokens))
 

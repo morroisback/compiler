@@ -4,16 +4,12 @@ from compiler import Compiler
 
 
 def test_lexer() -> None:
-    # program = "a   = 3   + 2  ;"
-    # program = "while1 = 5;"
-    # program = "if (2 >  2) {a   = 3   + 2  ; }"
-    # program = "if (2 >  2 ){a   = 3   + 2 ;}  else    { a   = 3;}"
-    # program = "while   (a <   2)   {   if (2 >  2){   a   = 3   + 2  } else {   a   = 3 }}"
-    # program = "a = 1;while   a <   2   :  if i2 >  2  : a   = 3   + 2   else  :   a   = 3; pass   ;"
-
     program = """
-    a = 1;
+    a   = 3   + 2  ;
     while1=-3;
+    if (2 >  2) {a   = 3   + 2  ; }
+    if (2 >  2 ){a   = 3   + 2 ;}  else    { a   = 3;}
+
     while(while1 <   2 )  {
         if (a >  2  ){
             a = 5;
@@ -50,16 +46,12 @@ def test_lexer() -> None:
 
 
 def test_parser() -> None:
-    # program = "a   = 3   + 2  ;"
-    # program = "while1 = 5;"
-    # program = "if (2 >  2) {a   = 3   + 2  ; }"
-    # program = "if (2 >  2 ){a   = 3   + 2 ;}  else    { a   = 3;}"
-    # program = "while   (a <   2)   {   if (2 >  2){   a   = 3   + 2  } else {   a   = 3 }}"
-    # program = "a = 1;while   a <   2   :  if i2 >  2  : a   = 3   + 2   else  :   a   = 3; pass   ;"
-
     program = """
-    a = 1;
+    a   = 3   + 2  ;
     while1=-3;
+    if (2 >  2) {a   = 3   + 2  ; }
+    if (2 >  2 ){a   = 3   + 2 ;}  else    { a   = 3;}
+
     while(while1 <   2 )  {
         if (a >  2  ){
             a = 5;
@@ -92,12 +84,14 @@ def test_parser() -> None:
 
     parser = Parser()
     stmts = parser.parse_stmts(program_tokens)
-    expr = parser.parse_expr(expr_tokens)
-    stmt = parser.parse_stmt(stmts[0])
+    expr_tree = parser.parse_expr(expr_tokens)
+
+    for stmt in stmts:
+        stmt_tree = parser.parse_stmt(stmt)
+        print(stmt_tree)
 
     print(stmts)
-    print(expr)
-    print(stmt)
+    print(expr_tree)
 
     # lexer = Lexer()
     # parser = Parser(lexer)

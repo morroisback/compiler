@@ -33,7 +33,7 @@ class Compiler:
         self.pc += 1
 
     def compile_node(self, node: Node) -> None:
-        name = node.name
+        name = node.token
         if name == "INT":
             self.compile_command(Command.PUSH)
             self.compile_command(int(node.op1))
@@ -116,6 +116,6 @@ class Compiler:
 
     def compile_program(self, ast: list) -> list:
         self.compile_stmt(ast)
-        
+
         self.compile_command(Command.HALT)
         return self.program
