@@ -136,7 +136,7 @@ def run_program(program: str) -> None:
 
     vm = VirtualMachine()
     vm.run(bytecode)
-    
+
 
 def main() -> None:
     # test_lexer()
