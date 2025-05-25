@@ -99,10 +99,7 @@ class Lexer:
                 pos += len(token)
 
                 if token in "+-":
-                    if len(tokens) == 0 or tokens[-1] not in (
-                        TokenEnum.VAR,
-                        TokenEnum.NUM,
-                    ):
+                    if len(tokens) == 0 or tokens[-1] not in (TokenEnum.VAR, TokenEnum.NUM):
                         token += "u"
 
                 tokens.append(Token(token))

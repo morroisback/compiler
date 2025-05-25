@@ -144,7 +144,7 @@ def main() -> None:
     # test_compiler()
     # test_virtual_machine()
 
-    program, expr = test_program()
+    program, _ = test_program()
     run_program(program)
 
 
